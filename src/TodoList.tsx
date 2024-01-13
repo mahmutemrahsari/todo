@@ -17,13 +17,16 @@ export const TodoList = () => {
   const [input, setInput] = useState<string>("");
 
   const handleToggle = (id: number) => {
-    setTodos((prevTodos) =>
-      prevTodos.map((todo) => {
-        if (todo.id === id) {
-          return { ...todo, completed: !todo.completed };
-        }
-        return todo;
-      })
+    setTodos(
+      (
+        prevTodos //we are going to add new todo item, so we named it prevTodos that represent
+      ) =>
+        prevTodos.map((todo) => {
+          if (todo.id === id) {
+            return { ...todo, completed: !todo.completed };
+          }
+          return todo;
+        })
     );
   };
 
@@ -71,3 +74,5 @@ export const TodoList = () => {
     </div>
   );
 };
+
+// ...prevTodos is previous state of todos array and wa make a swallow copy of the prevTodos array!
