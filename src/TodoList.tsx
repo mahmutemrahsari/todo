@@ -63,7 +63,6 @@ export const TodoList = () => {
   useMutation(DELETE_TASK);
   useMutation(ADD_TASK);
 
-  const [todos, setTodos] = useState<Task[]>([]);
   const [input, setInput] = useState<string>("");
   const [editing, setEditing] = useState<boolean>(false); //jeg vil ikke blandet de input og editInput
   const [editInput, setEditInput] = useState<string>("");
@@ -72,23 +71,13 @@ export const TodoList = () => {
   const [inputError, setInputError] = useState<string>("");
   const [editInputError, setEditInputError] = useState<string>("");
 
-  const handleToggle = async (id: number) => {
-    // Find the task to toggle in the local state
-    const toggledTask = todos.find((todo) => todo.id === id);
-
-    if (toggledTask) {
-      // Perform the updateTask mutation
-      await updateTaskMutation({
-        variables: {
-          id,
-          edits: { completed: !toggledTask.completed },
-        },
-        refetchQueries: [{ query: GET_TASKS }],
-      });
-
-      // Refetch tasks after update
-      refetch();
-    }
+  const handleToggle = async (id: number, completed: boolean) => {
+    await updateTaskMutation({
+      variables: { id, completed, edits: { completed: !completed } },
+      refetchQueries: [{ query: GET_TASKS }],
+    });
+    // Refetch tasks after deletion
+    refetch();
   };
 
   const handleRemove = async (id: number) => {
@@ -145,14 +134,13 @@ export const TodoList = () => {
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error!</p>;
-
   return (
     <div>
       <ListGroup>
         {data.tasks.map((task: Task) => (
           <ListGroupItem
             key={task.id}
-            onClick={() => handleToggle(task.id)}
+            onClick={() => handleToggle(task.id, task.completed)}
             className="flex"
             style={{ textDecoration: task.completed ? "line-through" : "none" }}
           >
