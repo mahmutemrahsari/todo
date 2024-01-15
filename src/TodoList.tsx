@@ -1,8 +1,14 @@
 import React, { useState } from "react";
 import { Button, ListGroup, ListGroupItem } from "react-bootstrap";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { useQuery, gql, useMutation } from "@apollo/client";
-
+import { useQuery, useMutation } from "@apollo/client";
+import {
+  UPDATE_TASK,
+  DELETE_TASK,
+  DELETE_ALL_TASKS,
+  ADD_TASK,
+  GET_TASKS,
+} from "./graphQuery";
 interface Task {
   id: number;
   title: string;
@@ -11,52 +17,9 @@ interface Task {
 }
 
 export const TodoList = () => {
-  const GET_TASKS = gql`
-    query tasks {
-      tasks {
-        id
-        title
-        completed
-        user_id
-      }
-    }
-  `;
-
-  const DELETE_TASK = gql`
-    mutation deleteTask($id: Int!) {
-      deleteTask(id: $id) {
-        id
-        title
-        completed
-        user_id
-      }
-    }
-  `;
-
-  const ADD_TASK = gql`
-    mutation addTask($id: Int!, $title: String!) {
-      addTask(task: { id: $id, title: $title, completed: false, user_id: 1 }) {
-        id
-        title
-        completed
-        user_id
-      }
-    }
-  `;
-
-  const UPDATE_TASK = gql`
-    mutation updateTask($id: Int!, $edits: EditTaskInput!) {
-      updateTask(id: $id, edits: $edits) {
-        id
-        title
-        completed
-        user_id
-      }
-    }
-  `;
-
   const [updateTaskMutation] = useMutation(UPDATE_TASK);
   const [deleteTaskMutation] = useMutation(DELETE_TASK);
+  const [deleteAllTasksMutation] = useMutation(DELETE_ALL_TASKS);
   const [addTaskMutation] = useMutation(ADD_TASK);
 
   const { loading, error, data, refetch } = useQuery(GET_TASKS);
@@ -72,10 +35,20 @@ export const TodoList = () => {
   const [editInputError, setEditInputError] = useState<string>("");
 
   const handleToggle = async (id: number, completed: boolean) => {
+    console.log("===>>>HANDLE TOGGLE", completed);
     await updateTaskMutation({
       variables: { id, completed, edits: { completed: !completed } },
       refetchQueries: [{ query: GET_TASKS }],
     });
+    // Refetch tasks after deletion
+    refetch();
+  };
+
+  const handleDeleteAllTasks = async () => {
+    await deleteAllTasksMutation({
+      refetchQueries: [{ query: GET_TASKS }],
+    });
+
     // Refetch tasks after deletion
     refetch();
   };
@@ -140,11 +113,12 @@ export const TodoList = () => {
         {data.tasks.map((task: Task) => (
           <ListGroupItem
             key={task.id}
-            onClick={() => handleToggle(task.id, task.completed)}
             className="flex"
             style={{ textDecoration: task.completed ? "line-through" : "none" }}
           >
-            {task.title}
+            <p onClick={() => handleToggle(task.id, task.completed)}>
+              {task.title}
+            </p>
             <div className=" d-flex justify-content-end">
               <div className="m-1 p-1">
                 <Button
@@ -212,6 +186,13 @@ export const TodoList = () => {
         </div>
         <Button className="mt-2" onClick={handleClick}>
           Add
+        </Button>
+        <Button
+          variant="danger"
+          className="danger mt-2"
+          onClick={handleDeleteAllTasks}
+        >
+          Delete all tasks
         </Button>
       </ListGroup>
       <p></p>

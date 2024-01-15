@@ -4,8 +4,8 @@ import { TodoList } from "./TodoList";
 
 function App() {
   return (
-    <div className="App">
-      <h1>TO DO</h1>
+    <div className="container-md">
+      <h1 className="header">TO DO</h1>
       <p></p>
       <TodoList />
     </div>
